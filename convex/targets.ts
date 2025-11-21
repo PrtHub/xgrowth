@@ -1,0 +1,87 @@
+import { query } from "./_generated/server";
+
+export const TARGET_ACCOUNTS = [
+  // Indie Hackers & SaaS Founders
+  "levelsio",
+  "dannypostma",
+  "marc_louvion",
+  "tibomaker",
+  "damengchen",
+  "yongfook",
+  "arvidkahl",
+  "csallen",
+  "sahilavinge",
+  "shl",
+  "flybayer",
+  "nutlope",
+  "sullymgn",
+  "gregory_v",
+  "realvjy",
+  "james_m_mcdonald",
+  "sobedar",
+  "tdinh_me",
+  "thekitze",
+  "dvassallo",
+  "swyx",
+  "hellonehha",
+  "dagorenouf",
+  "ayusht",
+  "krishnerkar",
+
+  // Next.js / React / Tech
+  "leeerob",
+  "rauchg",
+  "shuding_",
+  "cramforce",
+  "delba_oliveira",
+  "steventey",
+  "shadcn",
+  "t3dotgg",
+  "acdlite",
+  "dan_abramov",
+  "kentcdodds",
+  "housecor",
+  "ryanflorence",
+  "mjackson",
+  "dai_shi",
+  "joshwcomeau",
+  "adamwathan",
+  "samselikoff",
+  "benjamminj",
+  "matt_pocock",
+
+  // Design & Growth
+  "stephsmithio",
+  "dickiebush",
+  "nicolascole77",
+  "justinwelsh",
+  "easlo",
+  "modestmitkus",
+  "pham25",
+  "jayclouse",
+  "katelynboin",
+  "viz_josh",
+  "design_pilot",
+  "ui_adrian",
+  "zander_whitehurst",
+  "mizko",
+  "ransegall",
+
+  // Additional Niche Interests
+  "elonmusk",
+  "paulg",
+  "sama",
+  "naval",
+  "balajis",
+  "cdixon",
+  "pmarca",
+  "vitalikbuterin",
+  "brian_armstrong",
+  "jack",
+];
+
+export const getTargets = query({
+  handler: async () => {
+    return TARGET_ACCOUNTS.map((username) => ({ username }));
+  },
+});
