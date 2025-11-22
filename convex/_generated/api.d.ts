@@ -19,6 +19,7 @@ import type * as generateReply from "../generateReply.js";
 import type * as getFreshPosts from "../getFreshPosts.js";
 import type * as hooks from "../hooks.js";
 import type * as postReply from "../postReply.js";
+import type * as stats from "../stats.js";
 import type * as targets from "../targets.js";
 import type * as users from "../users.js";
 
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   getFreshPosts: typeof getFreshPosts;
   hooks: typeof hooks;
   postReply: typeof postReply;
+  stats: typeof stats;
   targets: typeof targets;
   users: typeof users;
 }>;

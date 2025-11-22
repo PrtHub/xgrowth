@@ -4,16 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, MessageSquare, Zap, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 
 const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Engagement", href: "/engagement", icon: MessageSquare },
-    { name: "Hooks", href: "/hooks", icon: Zap },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Engagement", href: "/dashboard/engagement", icon: MessageSquare },
+    { name: "Hooks", href: "/dashboard/hooks", icon: Zap },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+    userId?: Id<"users">;
+}
+
+export function Sidebar({ userId }: SidebarProps) {
     const pathname = usePathname();
+    const user = useQuery(api.users.getUserById, userId ? { userId } : "skip");
 
     return (
         <div className="flex h-full w-64 flex-col border-r border-white/10 bg-white/5 backdrop-blur-xl">
@@ -47,11 +56,34 @@ export function Sidebar() {
                     );
                 })}
             </nav>
-            <div className="border-t border-white/10 p-4">
-                <button className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground">
-                    <LogOut className="mr-3 h-5 w-5" />
-                    Sign Out
-                </button>
+            <div className="border-t border-white/10 p-4 space-y-4">
+                {user && (
+                    <div className="flex items-center gap-3 px-2">
+                        {user.image ? (
+                            <img
+                                src={user.image}
+                                alt={user.name}
+                                className="h-8 w-8 rounded-full border border-white/10 object-cover"
+                            />
+                        ) : (
+                            <div className="h-8 w-8 rounded-full bg-linear-gradient-to-br from-primary to-purple-400" />
+                        )}
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="truncate text-sm font-medium text-foreground">{user.name}</span>
+                            <span className="truncate text-xs text-muted-foreground">@{user.username}</span>
+                        </div>
+                    </div>
+                )}
+                <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground hover:bg-white/5"
+                >
+                    <Link href="/api/auth/logout">
+                        <LogOut className="h-5 w-5" />
+                        Sign Out
+                    </Link>
+                </Button>
             </div>
         </div>
     );

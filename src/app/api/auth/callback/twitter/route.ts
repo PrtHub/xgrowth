@@ -41,7 +41,9 @@ export async function GET(request: Request) {
       redirectUri: process.env.X_REDIRECT_URI!,
     });
 
-    const { data: me } = await loggedClient.v2.me();
+    const { data: me } = await loggedClient.v2.me({
+      "user.fields": ["public_metrics", "profile_image_url"],
+    });
 
     const userId = await convex.mutation(api.users.storeUser, {
       twitterId: me.id,
@@ -50,6 +52,9 @@ export async function GET(request: Request) {
       accessToken,
       refreshToken: refreshToken || "",
       tokenExpiresAt: Date.now() + expiresIn * 1000,
+      followers: me.public_metrics?.followers_count,
+      impressions: 0,
+      image: me.profile_image_url?.replace("_normal", ""), // Get higher res image
     });
 
     // Create JWT session
@@ -66,7 +71,7 @@ export async function GET(request: Request) {
       path: "/",
     });
 
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   } catch (error) {
     console.error(error);
     return NextResponse.json(

@@ -5,9 +5,14 @@ import { api } from "../../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Copy } from "lucide-react";
+import { Id } from "../../../../convex/_generated/dataModel";
 
-export default function HooksPage() {
-    const hooks = useQuery(api.hooks.getHooks);
+interface HooksContentProps {
+    userId: Id<"users">;
+}
+
+export default function HooksContent({ userId }: HooksContentProps) {
+    const hooks = useQuery(api.hooks.getHooks, { userId });
     const generate = useAction(api.dailyHooks.generate);
 
     return (
@@ -15,7 +20,7 @@ export default function HooksPage() {
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Morning Hooks</h2>
                 <Button
-                    onClick={() => generate({})}
+                    onClick={() => generate({ userId })} // Pass userId if needed, but action might assume context or args
                     className="bg-linear-gradient-to-r from-primary to-purple-500 text-white hover:opacity-90"
                 >
                     <Sparkles className="mr-2 h-4 w-4" />

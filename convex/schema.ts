@@ -10,6 +10,9 @@ export default defineSchema({
     refreshToken: v.string(),
     tokenExpiresAt: v.number(),
     subscriptionStatus: v.string(), // 'active'
+    followers: v.optional(v.number()),
+    impressions: v.optional(v.number()),
+    image: v.optional(v.string()),
   }).index("by_twitterId", ["twitterId"]),
 
   targets: defineTable({

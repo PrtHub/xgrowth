@@ -1,15 +1,35 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useAction } from "convex/react";
+import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Users, Eye, TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { Area, AreaChart, XAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { Id } from "../../../convex/_generated/dataModel";
 
-export default function DashboardPage() {
-    const user = useQuery(api.users.getUser, { twitterId: "demo" });
-    const stats = useQuery(api.users.getStats, user?._id ? { userId: user._id } : "skip");
+interface DashboardContentProps {
+    userId: Id<"users">;
+}
+
+export default function DashboardContent({ userId }: DashboardContentProps) {
+    const user = useQuery(api.users.getUserById, { userId });
+    const stats = useQuery(api.users.getStats, { userId });
+    const sync = useAction(api.stats.syncStats);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const handleSync = async () => {
+        setIsSyncing(true);
+        try {
+            await sync({ userId });
+            // toast.success("Stats synced successfully!"); // Assuming toast is available or add it
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     // Mock data if no stats yet
     const data = stats?.map((s: any) => ({
@@ -28,9 +48,13 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-                <Button className="gap-2 bg-white/10 hover:bg-white/20 text-white border-0">
-                    <RefreshCw className="h-4 w-4" />
-                    Sync Latest Data
+                <Button
+                    onClick={handleSync}
+                    disabled={isSyncing}
+                    className="gap-2 bg-white/10 hover:bg-white/20 text-white border-0"
+                >
+                    <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {isSyncing ? 'Syncing...' : 'Sync Latest Data'}
                 </Button>
             </div>
 
@@ -43,10 +67,10 @@ export default function DashboardPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">{(user as any)?.followers || "1,450"}</div>
+                        <div className="text-2xl font-bold text-white">{(user as any)?.followers || "0"}</div>
                         <p className="text-xs text-emerald-500 flex items-center mt-1">
                             <TrendingUp className="h-3 w-3 mr-1" />
-                            +20.1% from last month
+                            +0% from last month
                         </p>
                     </CardContent>
                 </Card>
@@ -59,10 +83,10 @@ export default function DashboardPage() {
                         <Eye className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-white">5,231</div>
+                        <div className="text-2xl font-bold text-white">0</div>
                         <p className="text-xs text-emerald-500 flex items-center mt-1">
                             <TrendingUp className="h-3 w-3 mr-1" />
-                            +12.5% from last month
+                            +0% from last month
                         </p>
                     </CardContent>
                 </Card>

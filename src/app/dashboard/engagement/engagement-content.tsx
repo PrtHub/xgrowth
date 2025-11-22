@@ -5,10 +5,14 @@ import { api } from "../../../../convex/_generated/api";
 import { ReplyCard } from "@/components/engagement/reply-card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { Doc } from "../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 
-export default function EngagementPage() {
-    const pendingReplies = useQuery(api.engagementDb.getPendingReplies);
+interface EngagementContentProps {
+    userId: Id<"users">;
+}
+
+export default function EngagementContent({ userId }: EngagementContentProps) {
+    const pendingReplies = useQuery(api.engagementDb.getPendingReplies, { userId });
     const approve = useMutation(api.engagementDb.approveReply);
     const reject = useMutation(api.engagementDb.rejectReply);
     const fetchTweets = useAction(api.engagement.fetchTweets);
@@ -20,7 +24,7 @@ export default function EngagementPage() {
                 <Button
                     variant="outline"
                     className="gap-2"
-                    onClick={() => fetchTweets({ userId: "me" as any })} // Need real user ID or context
+                    onClick={() => fetchTweets({ userId })}
                 >
                     <RefreshCw className="h-4 w-4" />
                     Fetch New Tweets

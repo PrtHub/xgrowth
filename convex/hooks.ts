@@ -43,7 +43,12 @@ export const createHook = internalMutation({
 });
 
 export const getHooks = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("hooks").order("desc").collect();
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("hooks")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .order("desc")
+      .collect();
   },
 });

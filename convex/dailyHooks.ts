@@ -1,20 +1,30 @@
 "use node";
 
 import { v } from "convex/values";
-import { action, internalMutation } from "./_generated/server";
+import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 export const generate = action({
-  args: {},
-  handler: async (ctx) => {
-    const apiKey = process.env.OPENAI_API_KEY;
+  args: { userId: v.optional(v.id("users")) },
+  handler: async (ctx, args) => {
+    const targetUserId = args.userId ?? ("system" as any);
+    const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      console.log("OpenAI API Key not found, returning mock hooks.");
-      return [
+      console.log("OpenRouter API Key not found, returning mock hooks.");
+      const mockHooks = [
         "🚀 Shipped Artifact UI in 48 hours. 0 lines of backend code. Just Convex + Next.js 15. This is the future.",
         "Most devs spend weeks on auth. I spent 2 hours with Convex Auth. Shipped the whole MVP in a weekend. Time is money.",
         "Hot take: If your SaaS doesn't have glassmorphism in 2025, you're leaving money on the table. UI = Trust = Revenue.",
       ];
+
+      for (const hook of mockHooks) {
+        await ctx.runMutation(internal.hooks.createHook, {
+          userId: targetUserId,
+          content: hook,
+          type: "hook",
+        });
+      }
+      return mockHooks;
     }
 
     const prompt = `
@@ -66,15 +76,17 @@ Return ONLY the 3 hooks as a JSON array of strings.
 
     try {
       const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
+        "https://openrouter.ai/api/v1/chat/completions",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
+            "HTTP-Referer": "https://x-growth.vercel.app",
+            "X-Title": "X Growth",
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "x-ai/grok-2-1212",
             messages: [
               {
                 role: "system",
@@ -96,7 +108,7 @@ Return ONLY the 3 hooks as a JSON array of strings.
       // Store in DB
       for (const hook of hooks) {
         await ctx.runMutation(internal.hooks.createHook, {
-          userId: "system" as any,
+          userId: targetUserId,
           content: hook,
           type: "hook",
         });
@@ -114,7 +126,7 @@ Return ONLY the 3 hooks as a JSON array of strings.
 
       for (const hook of fallbackHooks) {
         await ctx.runMutation(internal.hooks.createHook, {
-          userId: "system" as any,
+          userId: targetUserId,
           content: hook,
           type: "hook",
         });

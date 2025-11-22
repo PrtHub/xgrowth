@@ -9,6 +9,9 @@ export const storeUser = mutation({
     accessToken: v.string(),
     refreshToken: v.string(),
     tokenExpiresAt: v.number(),
+    followers: v.optional(v.number()),
+    impressions: v.optional(v.number()),
+    image: v.optional(v.string()),
   },
 
   handler: async (ctx, args) => {
@@ -17,6 +20,8 @@ export const storeUser = mutation({
       .withIndex("by_twitterId", (q) => q.eq("twitterId", args.twitterId))
       .first();
 
+    let userId = existingUser?._id;
+
     if (existingUser) {
       await ctx.db.patch(existingUser._id, {
         name: args.name,
@@ -24,20 +29,49 @@ export const storeUser = mutation({
         accessToken: args.accessToken,
         refreshToken: args.refreshToken,
         tokenExpiresAt: args.tokenExpiresAt,
+        followers: args.followers,
+        image: args.image,
       });
-      return existingUser._id;
     } else {
-      const newUserId = await ctx.db.insert("users", {
+      userId = await ctx.db.insert("users", {
         twitterId: args.twitterId,
         name: args.name,
         username: args.username,
         accessToken: args.accessToken,
         refreshToken: args.refreshToken,
         tokenExpiresAt: args.tokenExpiresAt,
-        subscriptionStatus: "active", // Default to active for MVP
+        subscriptionStatus: "active",
+        followers: args.followers,
+        image: args.image,
       });
-      return newUserId;
     }
+
+    // Update daily stats if provided
+    if (userId && args.followers !== undefined) {
+      const date = new Date().toISOString().split("T")[0];
+      const existingStats = await ctx.db
+        .query("dailyStats")
+        .withIndex("by_userId_date", (q) =>
+          q.eq("userId", userId!).eq("date", date)
+        )
+        .first();
+
+      if (existingStats) {
+        await ctx.db.patch(existingStats._id, {
+          followers: args.followers,
+          impressions: args.impressions || 0,
+        });
+      } else {
+        await ctx.db.insert("dailyStats", {
+          userId: userId!,
+          date,
+          followers: args.followers,
+          impressions: args.impressions || 0,
+        });
+      }
+    }
+
+    return userId;
   },
 });
 
@@ -99,5 +133,42 @@ export const getStats = query({
       .withIndex("by_userId_date", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(30);
+  },
+});
+
+export const updateUserStats = internalMutation({
+  args: {
+    userId: v.id("users"),
+    followers: v.number(),
+    impressions: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Update user record
+    await ctx.db.patch(args.userId, {
+      followers: args.followers,
+    });
+
+    // Update daily stats
+    const date = new Date().toISOString().split("T")[0];
+    const existing = await ctx.db
+      .query("dailyStats")
+      .withIndex("by_userId_date", (q) =>
+        q.eq("userId", args.userId).eq("date", date)
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        followers: args.followers,
+        impressions: args.impressions,
+      });
+    } else {
+      await ctx.db.insert("dailyStats", {
+        userId: args.userId,
+        date,
+        followers: args.followers,
+        impressions: args.impressions,
+      });
+    }
   },
 });

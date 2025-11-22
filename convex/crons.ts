@@ -15,7 +15,8 @@ crons.interval(
 crons.daily(
   "generate-daily-hooks",
   { hourUTC: 2, minuteUTC: 30 },
-  api.dailyHooks.generate
+  api.dailyHooks.generate,
+  {}
 );
 
 // Poll for new tweets every 5 minutes for early boost notifications

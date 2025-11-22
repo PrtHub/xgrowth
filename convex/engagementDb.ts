@@ -36,10 +36,12 @@ export const createReply = internalMutation({
 });
 
 export const getPendingReplies = query({
-  handler: async (ctx) => {
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
     return await ctx.db
       .query("replies")
       .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .filter((q) => q.eq(q.field("userId"), args.userId))
       .collect();
   },
 });
